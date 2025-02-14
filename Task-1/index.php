@@ -9,7 +9,12 @@
 <body>
 <div class="container mt-5">
     <h2 class="text-center">User Registration</h2>
-    <form action="" method="POST" class="mt-4" onsubmit="return validateForm()">
+
+    <!-- Display success or error messages -->
+    <div id="message" class="mt-3"></div>
+
+    <!-- Form -->
+    <form id="registrationForm" class="mt-4">
         <div class="mb-3">
             <label for="name" class="form-label">Name</label>
             <input type="text" class="form-control" id="name" name="name" required>
@@ -20,7 +25,7 @@
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
-    <div id="message" class="mt-3"></div>
+   
 </div>
 
 <script src="./assets/js/main.js"></script>
