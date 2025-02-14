@@ -2,11 +2,11 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile 
+      dockerfile: Dockerfile
     ports:
       - "8080:80"
     volumes:
-      - ./task-1:/var/www/html 
+      - ./task-1:/var/www/html
     depends_on:
       - db
 
@@ -20,4 +20,4 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./task-1/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
