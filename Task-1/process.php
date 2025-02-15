@@ -5,7 +5,7 @@ $successMessage = '';
 
 // Database connection
 $host = 'db';
-$dbname = 'user_registration';
+$dbname = 'main_db';
 $user = 'user'; //not secure, always use .env file for procuction ensure your security
 $pass = 'password'; //not secure, always use .env file for production ensure your security
 
@@ -49,7 +49,8 @@ try {
         }
     }
 } catch (PDOException $e) {
-    $errors[] = 'Database error: ' . $e->getMessage();
+    error_log("Database error: " . $e->getMessage());
+    $errors[] = 'An internal server error occurred. Please try again later.';
 }
 
 // Return response

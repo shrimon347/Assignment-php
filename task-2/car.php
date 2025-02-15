@@ -1,18 +1,11 @@
 <?php
 require_once 'Database.php';
 
-class Car {
-    private $db;
-
-    public function __construct() {
-        $database = new Database();
-        $this->db = $database->getConnection();
-    }
-
+class Car extends Database {
     // Insert a new car
-    public function insertCar($brand, $model, $year, $price) {
+    public function insert($brand, $model, $year, $price) {
         $query = "INSERT INTO cars (brand, model, year, price) VALUES (:brand, :model, :year, :price)";
-        $stmt = $this->db->prepare($query);
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':brand', $brand);
         $stmt->bindParam(':model', $model);
         $stmt->bindParam(':year', $year);
@@ -25,56 +18,36 @@ class Car {
     }
 
     // Retrieve all cars
-    public function getAllCars() {
+    public function getAll() {
         $query = "SELECT * FROM cars";
-        $stmt = $this->db->prepare($query);
+        $stmt = $this->conn->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    // Update car details (supports both PUT and PATCH)
-    public function updateCar($id, $data) {
-        $query = "UPDATE cars SET ";
-        $updates = [];
-        $params = [];
-
-        // Check each field and add it to the query if it exists
-        if (isset($data['brand'])) {
-            $updates[] = "brand = :brand";
-            $params[':brand'] = $data['brand'];
-        }
-        if (isset($data['model'])) {
-            $updates[] = "model = :model";
-            $params[':model'] = $data['model'];
-        }
-        if (isset($data['year'])) {
-            $updates[] = "year = :year";
-            $params[':year'] = $data['year'];
-        }
-        if (isset($data['price'])) {
-            $updates[] = "price = :price";
-            $params[':price'] = $data['price'];
+    // Update car details (supports partial updates)
+    public function update($id, $brand = null, $model = null, $year = null, $price = null) {
+        // Fetch the existing car data
+        $existingCar = $this->getCarById($id);
+        if (!$existingCar) {
+            return false; // Car not found
         }
 
-        // If no fields are provided, return false (nothing to update)
-        if (empty($updates)) {
-            return false;
-        }
+        // Use existing values if new values are not provided
+        $brand = $brand ?? $existingCar['brand'];
+        $model = $model ?? $existingCar['model'];
+        $year = $year ?? $existingCar['year'];
+        $price = $price ?? $existingCar['price'];
 
-        // Complete the query
-        $query .= implode(", ", $updates);
-        $query .= " WHERE id = :id";
-        $params[':id'] = $id;
+        // Construct the update query
+        $query = "UPDATE cars SET brand = :brand, model = :model, year = :year, price = :price WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':brand', $brand);
+        $stmt->bindParam(':model', $model);
+        $stmt->bindParam(':year', $year);
+        $stmt->bindParam(':price', $price);
+        $stmt->bindParam(':id', $id);
 
-        // Prepare and execute the query
-        $stmt = $this->db->prepare($query);
-
-        // Bind parameters dynamically
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
-        }
-
-        // Execute the query and return the result
         if ($stmt->execute()) {
             return true;
         }
@@ -82,15 +55,73 @@ class Car {
     }
 
     // Delete a car
-    public function deleteCar($id) {
+    public function delete($id) {
         $query = "DELETE FROM cars WHERE id = :id";
-        $stmt = $this->db->prepare($query);
+        $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':id', $id);
 
         if ($stmt->execute()) {
             return true;
         }
         return false;
+    }
+
+    // Search cars by brand or model
+    public function search($keyword) {
+        $query = "SELECT * FROM cars WHERE brand LIKE :keyword OR model LIKE :keyword";
+        $stmt = $this->conn->prepare($query);
+        $keyword = '%' . $keyword . '%';
+        $stmt->bindParam(':keyword', $keyword);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Filter cars by criteria
+    public function filter($filters) {
+        $conditions = [];
+        $params = [];
+
+        if (!empty($filters['brand'])) {
+            $conditions[] = "brand = :brand";
+            $params[':brand'] = $filters['brand'];
+        }
+        // if (!empty($filters['model'])) {
+        //     $conditions[] = "model = :model";
+        //     $params[':model'] = $filters['model'];
+        // }
+        // if (!empty($filters['min_year']) && !empty($filters['max_year'])) {
+        //     $conditions[] = "year BETWEEN :min_year AND :max_year";
+        //     $params[':min_year'] = $filters['min_year'];
+        //     $params[':max_year'] = $filters['max_year'];
+        // }
+        // if (!empty($filters['min_price']) && !empty($filters['max_price'])) {
+        //     $conditions[] = "price BETWEEN :min_price AND :max_price";
+        //     $params[':min_price'] = $filters['min_price'];
+        //     $params[':max_price'] = $filters['max_price'];
+        // }
+
+        // Build the query
+        $query = "SELECT * FROM cars";
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $stmt = $this->conn->prepare($query);
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value);
+        }
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Helper method to fetch a car by ID
+    public function getCarById($id) {
+        $query = "SELECT * FROM cars WHERE id = :id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }
 ?>

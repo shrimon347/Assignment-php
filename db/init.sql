@@ -1,16 +1,15 @@
-CREATE DATABASE IF NOT EXISTS user_registration;
+CREATE DATABASE IF NOT EXISTS main_db;
 
-USE user_registration;
+USE main_db;
 
---User table (for Task-!)
+-- User table (for Task-1)
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE
 );
 
---New Cars Table ( for Task-2)
-
+-- Cars table (for Task-2)
 CREATE TABLE IF NOT EXISTS cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     brand VARCHAR(255) NOT NULL,

@@ -6,7 +6,8 @@ services:
     ports:
       - "8080:80"
     volumes:
-      - ./task-1:/var/www/html
+      - ./task-1:/var/www/html/task-1
+      - ./task-2:/var/www/html/task-2
     depends_on:
       - db
 
@@ -14,7 +15,7 @@ services:
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: user_registration
+      MYSQL_DATABASE: main_db
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     ports:
